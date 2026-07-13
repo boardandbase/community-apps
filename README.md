@@ -24,6 +24,13 @@ That's it — it shows up on your display.
 
 ## Making your own
 
-Want to make your own? Copy an existing app's file, change the text to taste, and paste
-it into the dashboard the same way. Keep any passwords or keys in the settings, never in
-the app file itself, so it's safe to share.
+No coding needed — the dashboard does the hard part. In the **Custom apps** section of
+your display's dashboard:
+
+1. Click **Copy AI prompt** and paste it into a free chatbot (ChatGPT, Claude, or Gemini).
+2. Tell it, in plain English, what you'd like your app to show.
+3. Paste the code it gives you into the box and click **Test** to see a preview. If
+   something looks off, click **Copy error** and paste that back to the chatbot to fix it.
+4. Give it a name, fill in any settings, and click **Save & add to rotation**.
+
+Made something nice? Share it here so others can use it too.
