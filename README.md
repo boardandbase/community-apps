@@ -1,44 +1,33 @@
 # Board & Base — Community Apps
 
-Community apps for the **Board & Base DeskDisplay** (MatrixOS) — a 64×32 LED matrix
-display. Apps are written in [Starlark](https://github.com/bazelbuild/starlark) and
-rendered with [Pixlet](https://github.com/tidbyt/pixlet), so they are compatible with
-Tidbyt / Tronbyt as well.
+A collection of little screens for your **Board & Base display** — the small pixel
+screen that sits on your desk.
 
-## Layout
-
-Each app lives in its own folder under `apps/`:
-
-```
-apps/
-  <app-id>/
-    <app-id>.star   # the app
-    manifest.yaml   # id, name, summary, author
-    README.md       # what it does + how to configure
-```
-
-## Running an app locally
-
-```sh
-pixlet render apps/agents/agents.star     # render one frame to a WebP/GIF
-pixlet serve  apps/agents/agents.star     # live preview in the browser
-```
-
-Most apps take a bit of config (like an API key). Open the app's settings and fill in
-the fields, or paste a single line into the **Parameters** field, e.g.:
-
-```
-aio_username=UserA; aio_key=aio_xxxxxxxxxxxx; aio_feed=agent
-```
+Each app shows something useful at a glance. Pick one from the list, add it to your
+display, and you're done.
 
 ## Apps
 
-| App | Description |
+| App | What it shows |
 | --- | --- |
-| [Claude Agents](apps/agents) | How many Claude agents are running / done, read from an Adafruit IO feed. |
+| [Claude Agents](apps/agents) | How many jobs your Claude assistant is running right now, and how many are finished. |
 
-## Contributing
+More apps are on the way.
 
-- Keep secrets out of the code — read API keys from config/schema fields, never hardcode them.
-- One app per folder, each with a `manifest.yaml` and a short `README.md`.
-- Leave config defaults empty so the app is clean to share.
+## Adding an app to your display
+
+1. Click an app in the list above.
+2. Follow the short **Setup** on its page — usually just filling in a box or two.
+3. Save. It shows up on your display.
+
+That's it.
+
+## Making your own
+
+Made something fun? Contributions are welcome. Each app is a small folder with the app
+file and a short readme — the easiest start is to copy an existing app and tweak it.
+Keep any passwords or keys in the settings (never in the app file itself) so it's safe
+to share.
+
+The apps use [Pixlet](https://github.com/tidbyt/pixlet), the same free tool the Tidbyt
+community uses.
