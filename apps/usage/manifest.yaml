@@ -1,0 +1,9 @@
+id: usage
+name: Claude Usage
+summary: Claude session usage and reset countdown
+desc: >-
+  Shows your current Claude session usage as a percentage with an animated color
+  graph, plus when your tokens run out versus when the 5-hour session resets. Reads
+  a small JSON document from a URL you provide.
+author: Martijn Jansen
+fileName: claudeusage.star
