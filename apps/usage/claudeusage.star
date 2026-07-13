@@ -187,7 +187,9 @@ def _fill_col(av, iv, xc, ph):
     # glow on the red zone. Equal colors are merged into segments.
     fp = _clamp(_round(av * GH / 100.0), 0, GH)
     if fp == 0:
-        return _px(GH, None)
+        if av <= 0:
+            return _px(GH, None)
+        fp = 1  # any usage above zero shows at least one pixel
 
     kids = []
     spacer = GH - fp
@@ -496,8 +498,8 @@ def main(config):
 
     history = data.get("history") or []
     name = config.get("name") or ""
-    # Manual timezone overrides; else the device timezone ($tz); else UTC.
-    tz = config.get("timezone") or config.get("$tz") or "UTC"
+    # Manual timezone overrides; else the device timezone ($tz); else Europe/Amsterdam.
+    tz = config.get("timezone") or config.get("$tz") or "Europe/Amsterdam"
     centered = config.bool("show_history", False)
 
     return _usage(pct, secs, history, reset_at, name, tz, centered)
