@@ -21,10 +21,11 @@ pixlet render apps/usage/claudeusage.star "api_url=http://127.0.0.1:8123/mock.js
 ## Interactive browser preview
 
 `pixlet serve` gives a live preview with a settings form (all schema fields,
-including the `show_history` toggle). Config `.claude/launch.json` already has a
-`claudeusage-preview` entry (pixlet serve on port 8080) — start it with the
-`/run` skill or the preview tooling, then set the **Data URL** field to one of the
-served mocks to switch state without editing anything:
+including the `show_history` toggle). Add a `claudeusage-preview` entry to
+`.claude/launch.json` (pixlet serve on port 8080; the file is git-ignored, so
+recreate it per machine), start it with the `/run` skill or the preview tooling,
+then set the **Data URL** field to one of the served mocks to switch state without
+editing anything:
 
 - `http://127.0.0.1:8123/full.json`   → 100% (red 100%, blinking triangle, frozen clock)
 - `http://127.0.0.1:8123/normal.json` → 62%
