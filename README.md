@@ -16,18 +16,14 @@ More apps are on the way.
 
 ## Adding an app to your display
 
-1. Click an app in the list above.
-2. Follow the short **Setup** on its page — usually just filling in a box or two.
-3. Save. It shows up on your display.
+1. Open an app from the list above and **download its file** (the one ending in `.star`).
+2. **Paste it into your display's dashboard.**
+3. Fill in the short **Setup** shown on the app's page (a box or two), then save.
 
-That's it.
+That's it — it shows up on your display.
 
 ## Making your own
 
-Made something fun? Contributions are welcome. Each app is a small folder with the app
-file and a short readme — the easiest start is to copy an existing app and tweak it.
-Keep any passwords or keys in the settings (never in the app file itself) so it's safe
-to share.
-
-The apps use [Pixlet](https://github.com/tidbyt/pixlet), the same free tool the Tidbyt
-community uses.
+Want to make your own? Copy an existing app's file, change the text to taste, and paste
+it into the dashboard the same way. Keep any passwords or keys in the settings, never in
+the app file itself, so it's safe to share.
