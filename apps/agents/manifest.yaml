@@ -1,0 +1,8 @@
+id: agents
+name: Claude Agents
+summary: Running and finished Claude agents
+desc: >-
+  Shows how many Claude agents are running (RUN) and how many are done (DONE) on the
+  64x32 matrix, read from an Adafruit IO feed. Optionally shows a total token count.
+author: Board & Base
+fileName: agents.star
