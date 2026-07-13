@@ -165,6 +165,23 @@ task needed:
 }
 ```
 
+### Option C — GitHub Actions (no laptop, no jsonbin)
+
+Run the pump on a free GitHub Actions cron instead of your PC, and store `usage.json`
+in a public repo that the app reads over a raw URL — so you need neither a running
+laptop nor jsonbin. The script supports this via two extra settings:
+
+- `--dump-state` exports your session (`storage_state.json`) into the
+  `CLAUDE_SESSION_STATE` secret, so CI authenticates without `~/.claude_session`.
+- `USAGE_OUTPUT_FILE` makes it write the payload to a local file (committed by the
+  workflow) instead of pushing to jsonbin.
+
+Full walkthrough and the ready-made workflow are in
+[`github-actions/`](github-actions/README.md). Note: GitHub runners use datacenter
+IPs, which Cloudflare may block where your home IP doesn't — test with **Run
+workflow** first; if it's blocked, run the pump on a home device (Pi/NAS/Home
+Assistant) instead.
+
 ## Cookies / logging in again — how often and why
 
 - The script queries `/usage` as **your logged-in claude.ai session** (cookies in
