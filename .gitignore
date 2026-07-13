@@ -3,7 +3,6 @@
 
 # Claude Usage app - local secrets, never commit
 usage_config.json
-storage_state.json
 
 # Python
 __pycache__/

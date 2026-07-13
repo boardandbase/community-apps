@@ -14,21 +14,16 @@ own logged-in session; keep ~/.claude_session and your jsonbin key private
 Requires:  pip install playwright  &&  playwright install chromium
 
 Usage:
-    python push_usage.py --login       # one-time: opens a browser, log in, press ENTER
-    python push_usage.py --dump-state  # export the session as storage_state.json (for CI)
-    python push_usage.py --show        # print the raw usage JSON (for debugging)
-    python push_usage.py               # fetch -> map -> push (jsonbin or a local file)
+    python push_usage.py --login    # one-time: opens a browser, log in, press ENTER
+    python push_usage.py --show     # print the raw usage JSON (for debugging)
+    python push_usage.py            # fetch -> map -> push to jsonbin
 
 Config comes from env vars (Windows: setx) or from usage_config.json next to this
 script (git-ignored, keep private):
-    JSONBIN_BIN_ID      / bin_id        your jsonbin bin id
-    JSONBIN_ACCESS_KEY  / access_key    a read/write jsonbin access key
-    JSONBIN_MASTER_KEY  / master_key    (alternative to the access key)
-    CLAUDE_USAGE_URL    / usage_url     https://claude.ai/api/organizations/<org>/usage
-    CLAUDE_SESSION_STATE/ session_state Playwright storage_state JSON -- use this instead
-                                        of ~/.claude_session (e.g. in GitHub Actions)
-    USAGE_OUTPUT_FILE   / output_file   write the payload to this file instead of jsonbin
-                                        (for the git-commit / raw-URL flow)
+    JSONBIN_BIN_ID      / bin_id       your jsonbin bin id
+    JSONBIN_ACCESS_KEY  / access_key   a read/write jsonbin access key
+    JSONBIN_MASTER_KEY  / master_key   (alternative to the access key)
+    CLAUDE_USAGE_URL    / usage_url    https://claude.ai/api/organizations/<org>/usage
 
 See README.md for how to find your <org> id and set everything up.
 """
@@ -68,13 +63,6 @@ MASTER_KEY = os.environ.get("JSONBIN_MASTER_KEY") or _CFG.get("master_key")
 ACCESS_KEY = os.environ.get("JSONBIN_ACCESS_KEY") or _CFG.get("access_key")
 # Your org-specific usage endpoint (no personal default -- set via env/config).
 USAGE_URL = os.environ.get("CLAUDE_USAGE_URL") or _CFG.get("usage_url")
-# Playwright storage_state (cookies + localStorage) as JSON. When set we use a
-# normal browser context with this state instead of the persistent
-# ~/.claude_session dir -- that's how CI (no user profile on disk) authenticates.
-SESSION_STATE = os.environ.get("CLAUDE_SESSION_STATE") or _CFG.get("session_state")
-# When set, write the payload to this local file instead of pushing to jsonbin.
-# The GitHub Actions flow commits that file and the app reads it via a raw URL.
-OUTPUT_FILE = os.environ.get("USAGE_OUTPUT_FILE") or _CFG.get("output_file")
 
 # Number of samples kept for the trend line (one point per push).
 HISTORY_MAX = 120
@@ -112,63 +100,8 @@ def login():
     print("Session saved to", USER_DATA_DIR)
 
 
-def _session_state_dict():
-    """The configured storage_state as a dict, or None to use ~/.claude_session."""
-    if not SESSION_STATE:
-        return None
-    if isinstance(SESSION_STATE, dict):
-        return SESSION_STATE
-    try:
-        return json.loads(SESSION_STATE)
-    except (TypeError, ValueError):
-        sys.exit(
-            "CLAUDE_SESSION_STATE is not valid JSON -- it should be the output of "
-            "`python push_usage.py --dump-state`."
-        )
-
-
-def dump_state(path):
-    """Export the logged-in session (~/.claude_session) as a Playwright
-    storage_state JSON. Paste its contents into the CLAUDE_SESSION_STATE secret so
-    CI can authenticate without the on-disk profile."""
-    sync_playwright = _playwright()
-    with sync_playwright() as p:
-        ctx = p.chromium.launch_persistent_context(
-            user_data_dir=USER_DATA_DIR, headless=True, user_agent=UA
-        )
-        try:
-            state = ctx.storage_state()
-        finally:
-            ctx.close()
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(state, f)
-    print("Session state written to", path)
-    print("Copy its FULL contents into the GitHub secret CLAUDE_SESSION_STATE.")
-    print("Keep it private -- it grants access to your claude.ai session.")
-
-
-def _fetch_with_context(ctx):
-    """The actual usage request: cheap API request first, real navigation as a
-    fallback (which runs any JS / Cloudflare challenge)."""
-    r = ctx.request.get(USAGE_URL)
-    if r.status == 200:
-        return r.json()
-    page = ctx.new_page()
-    resp = page.goto(USAGE_URL)
-    if resp and resp.ok:
-        return json.loads(page.inner_text("body"))
-    raise RuntimeError(
-        "usage endpoint: request=%s nav=%s -- session expired? refresh it with "
-        "--login (local) or --dump-state -> CLAUDE_SESSION_STATE (CI)"
-        % (r.status, resp.status if resp else "none")
-    )
-
-
 def fetch():
-    """Live usage JSON via the logged-in headless context.
-
-    Uses the storage_state from CLAUDE_SESSION_STATE when set (CI), otherwise the
-    persistent ~/.claude_session profile (local)."""
+    """Live usage JSON via the logged-in headless context."""
     if not USAGE_URL:
         sys.exit(
             "No usage URL configured. Set CLAUDE_USAGE_URL (or 'usage_url' in "
@@ -177,21 +110,23 @@ def fetch():
             "See README.md for how to find your <org> id."
         )
     sync_playwright = _playwright()
-    state = _session_state_dict()
     with sync_playwright() as p:
-        if state is not None:
-            browser = p.chromium.launch(headless=True)
-            ctx = browser.new_context(user_agent=UA, storage_state=state)
-            try:
-                return _fetch_with_context(ctx)
-            finally:
-                ctx.close()
-                browser.close()
         ctx = p.chromium.launch_persistent_context(
             user_data_dir=USER_DATA_DIR, headless=True, user_agent=UA
         )
         try:
-            return _fetch_with_context(ctx)
+            r = ctx.request.get(USAGE_URL)
+            if r.status == 200:
+                return r.json()
+            # Fallback: real navigation (runs any JS / Cloudflare challenge).
+            page = ctx.new_page()
+            resp = page.goto(USAGE_URL)
+            if resp and resp.ok:
+                return json.loads(page.inner_text("body"))
+            raise RuntimeError(
+                "usage endpoint: request=%s nav=%s -- log in again? (--login)"
+                % (r.status, resp.status if resp else "none")
+            )
         finally:
             ctx.close()
 
@@ -258,16 +193,10 @@ def _history_from_record(rec):
 
 
 def read_prev():
-    """Read the existing state: (history, last_percent, last_reset). From the output
-    file in file mode, otherwise from the jsonbin bin. Empty/None if unreadable."""
+    """Read the existing state from the bin: (history, last_percent, last_reset).
+    Empty/None if unreadable."""
     rec = None
-    if OUTPUT_FILE:
-        try:
-            with open(OUTPUT_FILE, encoding="utf-8") as f:
-                rec = json.load(f)
-        except Exception:
-            rec = None
-    elif BIN_ID:
+    if BIN_ID:
         req = urllib.request.Request(
             "https://api.jsonbin.io/v3/b/%s/latest" % BIN_ID, headers=_auth_headers()
         )
@@ -284,11 +213,6 @@ def read_prev():
 
 
 def push(payload):
-    if OUTPUT_FILE:
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            json.dump(payload, f)
-        print("wrote %s: %s" % (OUTPUT_FILE, json.dumps(payload)))
-        return
     if not BIN_ID or not (MASTER_KEY or ACCESS_KEY):
         print("[dry-run] JSONBIN_BIN_ID + MASTER_KEY/ACCESS_KEY not set -- not pushed.")
         print("[dry-run] payload:", json.dumps(payload))
@@ -319,24 +243,13 @@ def push(payload):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Push Claude usage to jsonbin or a file")
+    ap = argparse.ArgumentParser(description="Push Claude usage to a jsonbin bin")
     ap.add_argument("--login", action="store_true", help="one-time browser login")
-    ap.add_argument(
-        "--dump-state",
-        nargs="?",
-        const="storage_state.json",
-        metavar="PATH",
-        help="export the session as a storage_state JSON (for the CI secret)",
-    )
     ap.add_argument("--show", action="store_true", help="print the raw usage JSON")
     args = ap.parse_args()
 
     if args.login:
         login()
-        return 0
-
-    if args.dump_state:
-        dump_state(args.dump_state)
         return 0
 
     data = fetch()
