@@ -60,117 +60,39 @@ it in `{"record": {...}}`, which the app also handles):
 | `reset_at` | when the 5-hour session window resets (RFC3339, UTC `…Z`) |
 | `history` | samples over time (`t` = RFC3339 UTC, `p` = percent); last 120 kept |
 
-## Setting up the data pump on Windows (from scratch)
+## Producing the data
 
-`push_usage.py` logs into claude.ai with a real browser once, then runs headless to
-read your usage and push it to a jsonbin bin.
+The app only *reads* JSON — something has to refresh it periodically. Two routes:
 
-**1. Install Python** — get it from [python.org](https://www.python.org/downloads/) and
-tick **"Add Python to PATH"** during install. Check it:
+### No laptop (recommended) — GitHub Actions
 
-```
-python --version
-```
+Run the pump on a free GitHub Actions cron and read the JSON straight from GitHub — no
+PC and no jsonbin. **Fork-and-go reference repo:**
+[JansenDevelopment/claude-usage-data](https://github.com/JansenDevelopment/claude-usage-data)
+— fork it, add three secrets, and point this app's `api_url` at your fork's raw URL.
+Full monkeyproof steps are in that repo's README.
 
-**2. Install Playwright** (the browser the script drives):
+### Local — the bundled `push_usage.py` → jsonbin
 
-```
-pip install playwright
-playwright install chromium
-```
+`push_usage.py` (in this folder) logs into claude.ai once with a real browser, then runs
+headless to read your usage and push it to a free jsonbin bin.
 
-**3. Create a jsonbin bin** — sign up at [jsonbin.io](https://jsonbin.io) (free):
+1. `pip install playwright && playwright install chromium`
+2. Create a free [jsonbin.io](https://jsonbin.io) bin; note its **Bin ID** and a
+   **read/write Access Key**.
+3. Find your org UUID at `https://claude.ai/api/organizations`; your usage URL is
+   `https://claude.ai/api/organizations/<UUID>/usage`.
+4. Put `bin_id`, `access_key` and `usage_url` in `usage_config.json` next to the script
+   (git-ignored), or use env vars `JSONBIN_BIN_ID` / `JSONBIN_ACCESS_KEY` /
+   `CLAUDE_USAGE_URL`.
+5. `python push_usage.py --login` (log in, leave the browser open, press ENTER), then
+   `python push_usage.py` to test.
+6. Set the app's `api_url` to `https://api.jsonbin.io/v3/b/<BIN_ID>/latest`.
 
-- **Create Bin** with `{"active": false}` and note the **Bin ID**.
-- Create a **read/write Access Key** — the script writes with this.
-- Either make the bin **public** (the app reads it without a key), or keep it private
-  and create a separate **read-only** key for the app's `read_key` field.
-
-**4. Find your org UUID** — logged into claude.ai, open
-`https://claude.ai/api/organizations` and copy the `uuid`. Your usage URL is:
-
-```
-https://claude.ai/api/organizations/<UUID>/usage
-```
-
-**5. Configure the script** — create `usage_config.json` next to `push_usage.py`
-(keep it private — it's git-ignored):
-
-```json
-{
-  "bin_id": "<your bin id>",
-  "access_key": "<jsonbin read/write key>",
-  "usage_url": "https://claude.ai/api/organizations/<UUID>/usage"
-}
-```
-
-(Or use environment variables `JSONBIN_BIN_ID`, `JSONBIN_ACCESS_KEY`,
-`CLAUDE_USAGE_URL` instead.)
-
-**6. Log in once:**
-
-```
-python push_usage.py --login
-```
-
-A browser opens — log into claude.ai, **leave the window open** and press ENTER in the
-terminal. Your session is saved to `C:\Users\<you>\.claude_session`.
-
-**7. Test it:**
-
-```
-python push_usage.py --show    # prints the raw usage JSON
-python push_usage.py           # fetch → map → push (adds one history point)
-```
-
-Finally set the app's `api_url` to `https://api.jsonbin.io/v3/b/<BIN_ID>/latest`.
-
-## Keeping it fresh — trigger it automatically
-
-Pick one of these. The reset countdown recomputes live from `reset_at`, so a little
-staleness between pushes doesn't matter.
-
-### Option A — Windows Task Scheduler (always on, in the background)
-
-Fastest via `schtasks` (`pythonw.exe` = no console window popping up each run):
-
-```
-schtasks /create /tn "ClaudeUsage" ^
-  /tr "\"C:\Path\to\pythonw.exe\" \"C:\Path\to\push_usage.py\"" ^
-  /sc minute /mo 5
-```
-
-Find your Python path with `where python`. The script reads `usage_config.json`
-relative to itself, so the working directory doesn't matter. Remove the task with:
-
-```
-schtasks /delete /tn "ClaudeUsage" /f
-```
-
-You *can* run it every minute (`/mo 1`), but note that's ~43k pushes/month — above the
-free jsonbin limit (~10k/month). **Every ~5 minutes is plenty** (the app caches reads
-for 60s anyway).
-
-Prefer the GUI? Create a task with a **Daily** trigger set to *"Repeat task every 5
-minutes for a duration of 1 day"*, action **Start a program** → `pythonw.exe`, with the
-script path as the argument.
-
-### Option B — Claude Code Stop hook (push after each turn)
-
-If you mostly want to watch usage *while working with Claude*, add a Stop hook to
-`~/.claude/settings.json` so it pushes exactly when something changes — no scheduled
-task needed:
-
-```json
-{
-  "hooks": {
-    "Stop": [
-      { "hooks": [ { "type": "command",
-        "command": "python \"C:/Path/to/push_usage.py\"" } ] }
-    ]
-  }
-}
-```
+**Keep it fresh:** schedule it, e.g. Windows Task Scheduler every ~5 min —
+`schtasks /create /tn ClaudeUsage /tr "\"C:\path\pythonw.exe\" \"C:\path\push_usage.py\"" /sc minute /mo 5`.
+The countdown recomputes live from `reset_at`, so light staleness is fine; stay under
+jsonbin's free ~10k writes/month.
 
 ## Cookies / logging in again — how often and why
 

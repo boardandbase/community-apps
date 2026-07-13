@@ -6,3 +6,5 @@ usage_config.json
 
 # Python
 __pycache__/
+
+/.claude/launch.json

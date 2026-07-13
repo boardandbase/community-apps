@@ -17,3 +17,18 @@ pixlet render apps/usage/claudeusage.star "api_url=http://127.0.0.1:8123/mock.js
 - The output webp is animated (12 frames). Reading it shows frame 0; to inspect
   another frame (e.g. the blink-off state of the 100% warning icon):
   `python -c "from PIL import Image; im=Image.open('out.webp'); im.seek(8); im.convert('RGB').save('f8.png')"`
+
+## Interactive browser preview
+
+`pixlet serve` gives a live preview with a settings form (all schema fields,
+including the `show_history` toggle). Config `.claude/launch.json` already has a
+`claudeusage-preview` entry (pixlet serve on port 8080) — start it with the
+`/run` skill or the preview tooling, then set the **Data URL** field to one of the
+served mocks to switch state without editing anything:
+
+- `http://127.0.0.1:8123/full.json`   → 100% (red 100%, blinking triangle, frozen clock)
+- `http://127.0.0.1:8123/normal.json` → 62%
+- `http://127.0.0.1:8123/ok.json`     → 30% (green "OK")
+
+Generate those mocks with `scratchpad/gen_mocks.py` (writes fresh timestamps each
+run) and keep the `python -m http.server 8123` from above serving them.
