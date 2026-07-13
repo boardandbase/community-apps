@@ -14,6 +14,8 @@ DEFAULT_URL = ""
 BG = "#000000"
 DIM = "#c3c8d4"          # dim text (reset clock / messages)
 CLAUDE = "#d97757"       # OFF/IDLE header
+RED = "#ff5147"          # error red: high percent label + frozen 100% clock
+WARN = "#ffd60a"         # warning-triangle fill (yellow pops on the red graph)
 NAME_COL = "#ff8a5c"     # name, bottom-right
 BLUE = "#0f9fff"         # ideal line / reset clock
 MARK = "#e8e8f0"         # marker + tokens-out clock
@@ -23,6 +25,7 @@ BAR_BG = "#26262b"
 BAR_W = 60
 
 W = 64
+CENTER = W // 2          # "now" column in history mode
 GH = 26                  # graph height (px), below the 6px header
 WINDOW = 5 * 3600        # 5-hour session window (seconds)
 GRAD = 6.0               # half-width (%) of the green<->red transition around the line
@@ -38,11 +41,13 @@ MARKER_CUT = 4           # trim the dotted marker this many px at the bottom
 G = [46, 168, 92]
 O = [255, 154, 60]
 R = [255, 81, 71]
+GRAY = [96, 104, 118]    # previous-window fill (history mode: no pace to judge)
+NOWLINE = "#4a4f5a"      # dim dotted "now" line (history mode)
 HEXD = "0123456789abcdef"
 
 def _pct_color(pct):
     if pct >= 80:
-        return "#ff5147"
+        return RED
     if pct >= 50:
         return "#ffd60a"
     return "#43e57a"
@@ -98,6 +103,51 @@ def _outlined(txt, font, fg, outline):
     ))
     return render.Stack(children = kids)
 
+# Warning triangle with "!" (15x13), shown when usage hits 100%.
+# y = fill, k = black (outline + exclamation), . = transparent.
+WARN_ICON = [
+    "......kkk......",
+    "......kyk......",
+    ".....kyyyk.....",
+    ".....kykyk.....",
+    "....kyykyyk....",
+    "....kyykyyk....",
+    "...kyyykyyyk...",
+    "...kyyykyyyk...",
+    "..kyyyyyyyyyk..",
+    "..kyyyykyyyyk..",
+    ".kyyyyykyyyyyk.",
+    ".kyyyyyyyyyyyk.",
+    "kkkkkkkkkkkkkkk",
+]
+WARN_PAL = {"y": WARN, "k": "#000000"}
+
+def _hpx(w, color):
+    if color == None:
+        return render.Box(width = w, height = 1)
+    return render.Box(width = w, height = 1, color = color)
+
+def _bitmap(rows, palette):
+    # Pixel-art from strings; equal-color runs per row are merged (cf. _fill_col).
+    lines = []
+    for row in rows:
+        kids = []
+        prev = None
+        run = 0
+        for ch in row.elems():
+            c = palette.get(ch)
+            if run > 0 and c == prev:
+                run += 1
+            else:
+                if run > 0:
+                    kids.append(_hpx(run, prev))
+                prev = c
+                run = 1
+        if run > 0:
+            kids.append(_hpx(run, prev))
+        lines.append(render.Row(children = kids))
+    return render.Column(children = lines)
+
 # --- OFF / IDLE / setup -------------------------------------------------------
 
 def _frame(children):
@@ -148,11 +198,15 @@ def _fill_col(av, iv, xc, ph):
     run = 0
     for h in range(fp, 0, -1):               # from the top (highest pixel) down
         pv = (h / float(GH)) * 100.0
-        diff = pv - iv
-        rgb = _grad_rgb(diff)
+        if iv == None:                        # previous window: neutral fill
+            diff = 0.0
+            rgb = GRAY
+        else:
+            diff = pv - iv
+            rgb = _grad_rgb(diff)
         dist = math.sqrt(xc * xc + h * h)
         fr = 1.0 + RIPPLE_AMP * math.sin(RIPPLE_FREQ * dist - ph)
-        if diff > 0:                          # red zone: soft glow
+        if iv != None and diff > 0:           # red zone: soft glow
             fr = fr * (1.0 + GLOW_AMP * math.sin(ph))
         fr = _qf(_clamp(fr, 0.45, 1.45))
         c = _cellhex(rgb, fr)
@@ -168,11 +222,13 @@ def _fill_col(av, iv, xc, ph):
     return render.Column(children = kids)
 
 def _ideal_col(iv):
+    if iv == None:                            # outside the current window
+        return _px(GH, None)
     ip = _clamp(_round(iv * GH / 100.0), 0, GH)
     above = _clamp(GH - ip, 0, GH - 1)
     return render.Column(children = [_px(above, None), _px(1, BLUE)])
 
-def _marker_col(hit):
+def _marker_col(hit, color):
     if not hit:
         return _px(GH, None)
     kids = []
@@ -180,7 +236,7 @@ def _marker_col(hit):
         if i >= GH - MARKER_CUT:
             kids.append(_px(1, None))       # shorter at the bottom
         else:
-            kids.append(_px(1, MARK if i % 2 == 0 else None))
+            kids.append(_px(1, color if i % 2 == 0 else None))
     return render.Column(children = kids)
 
 def _actual(cp, x):
@@ -193,6 +249,59 @@ def _actual(cp, x):
                 return cp[i][1]
             return cp[i - 1][1] + (cp[i][1] - cp[i - 1][1]) * (x - cp[i - 1][0]) / denom
     return cp[-1][1]
+
+def _map_x(off, elapsed, centered):
+    # Window offset (s) -> x column. History mode anchors "now" at CENTER.
+    if centered:
+        return _round(CENTER + (off - elapsed) * W / float(WINDOW))
+    return _round(off * W / float(WINDOW))
+
+def _vis_x(x, centered):
+    # Clamp to the screen; in history mode an off-screen marker is hidden (-1).
+    if centered and (x < 0 or x > W - 1):
+        return -1
+    return _clamp(x, 0, W - 1)
+
+def _hist_pts_centered(history, start, elapsed):
+    # All samples up to "now", mapped so that now = CENTER. Split into samples
+    # from a previous window (before start) and from the current one.
+    prev = []
+    cur = []
+    for s in history:
+        if type(s) != "dict":
+            continue
+        t = s.get("t")
+        p = s.get("p")
+        if t == None or p == None:
+            continue
+        off = (time.parse_time(t) - start).seconds
+        if off > elapsed:
+            continue
+        x = CENTER + (off - elapsed) * W / float(WINDOW)
+        if off < 0:
+            prev.append([x, p])
+        else:
+            cur.append([x, p])
+    return sorted(prev, key = lambda e: e[0]), sorted(cur, key = lambda e: e[0])
+
+def _hit100_time(history, start):
+    # Earliest sample at/above 100% within the current window; None if absent.
+    # The window filter matters: history rolls across sessions, so a 100% point
+    # from a previous session must not freeze the wrong moment.
+    best = None
+    for s in history:
+        if type(s) != "dict":
+            continue
+        t = s.get("t")
+        p = s.get("p")
+        if t == None or p == None or p < 100:
+            continue
+        off = (time.parse_time(t) - start).seconds
+        if off < 0 or off > WINDOW:
+            continue
+        if best == None or off < best[0]:
+            best = [off, time.parse_time(t)]
+    return best[1] if best else None
 
 def _hist_points(history, start, elapsed):
     pts = []
@@ -208,7 +317,7 @@ def _hist_points(history, start, elapsed):
             pts.append([off * W / float(WINDOW), p])
     return sorted(pts, key = lambda e: e[0])
 
-def _layout(pct, times, middle, pct_color, name_txt):
+def _layout(pct, times, middle, pct_color, name_txt, icon_on = True):
     # Header: the clock times side by side (each [text, color]).
     hk = []
     first = True
@@ -222,10 +331,21 @@ def _layout(pct, times, middle, pct_color, name_txt):
         expanded = True, main_align = "end", cross_align = "center", children = hk,
     ))
     base = render.Column(children = [header, render.Box(width = W, height = GH, child = middle)])
-    pct_label = render.Padding(
-        pad = (2, 1, 0, 0),
-        child = render.Text(content = "%d%%" % pct, font = "tb-8", color = pct_color),
-    )
+    if pct >= 100:
+        # Error state: big red 100% below the header + blinking warning triangle.
+        row = [_outlined("%d%%" % pct, "6x13", RED, OUTLINE)]
+        if icon_on:
+            row.append(render.Box(width = 2, height = 1))
+            row.append(_bitmap(WARN_ICON, WARN_PAL))
+        pct_label = render.Padding(
+            pad = (1, 7, 0, 0),
+            child = render.Row(cross_align = "center", children = row),
+        )
+    else:
+        pct_label = render.Padding(
+            pad = (2, 1, 0, 0),
+            child = render.Text(content = "%d%%" % pct, font = "tb-8", color = pct_color),
+        )
     kids = [base, pct_label]
     # Name bottom-right (optional): pinned down (Padding) + right-aligned (Row
     # main_align "end") so any length sits neatly in the corner. A plain Box would
@@ -243,7 +363,7 @@ def _layout(pct, times, middle, pct_color, name_txt):
         ))
     return render.Box(width = W, height = 32, color = BG, child = render.Stack(children = kids))
 
-def _usage(pct, secs, history, reset_at, name, tz):
+def _usage(pct, secs, history, reset_at, name, tz, centered):
     pct_color = _pct_color(pct)
 
     # No reset_at -> no time graph; fall back to a centered bar.
@@ -259,13 +379,38 @@ def _usage(pct, secs, history, reset_at, name, tz):
     elapsed = WINDOW - secs
     if elapsed < 0:
         elapsed = 0
-    nowX = _clamp(_round(elapsed * W / float(WINDOW)), 0, W)
 
-    # Control points: start at 0, history points, current reading last.
-    cp = [[0, 0]]
-    for p in _hist_points(history, start, elapsed):
-        cp.append(p)
-    cp.append([nowX, pct])
+    # Per-column values (avs = usage fill, ivs = ideal line; None = no window).
+    # Classic: the window spans the full width, x=0 is the session start.
+    # History mode: "now" sits at CENTER; left of it the past (grey where it
+    # belongs to a previous window), right of it what's still ahead.
+    avs = []
+    ivs = []
+    if centered:
+        nowX = CENTER
+        xStart = CENTER - elapsed * W / float(WINDOW)
+        prev_cp, cur_pts = _hist_pts_centered(history, start, elapsed)
+        cp = [[xStart, 0]] + cur_pts + [[nowX, pct]]
+        for x in range(W):
+            ivs.append((x - xStart) * 100.0 / W if x >= xStart and x <= xStart + W else None)
+            if x > nowX:
+                avs.append(0.0)
+            elif x >= xStart:
+                avs.append(_actual(cp, x))
+            elif len(prev_cp) > 0 and x >= prev_cp[0][0]:
+                avs.append(_actual(prev_cp, x))
+            else:
+                avs.append(0.0)  # older than the oldest sample: nothing
+    else:
+        nowX = _clamp(_round(elapsed * W / float(WINDOW)), 0, W)
+        # Control points: start at 0, history points, current reading last.
+        cp = [[0, 0]]
+        for p in _hist_points(history, start, elapsed):
+            cp.append(p)
+        cp.append([nowX, pct])
+        for x in range(W):
+            ivs.append((x / float(W)) * 100.0)
+            avs.append(_actual(cp, x) if x <= nowX else 0.0)
 
     reset_clock = reset.in_location(tz).format("15:04")
 
@@ -277,30 +422,46 @@ def _usage(pct, secs, history, reset_at, name, tz):
         hit_sec = elapsed * 100.0 / pct
         if hit_sec < WINDOW:  # only if you run out before the reset
             show_hit = True
-            xHit = _clamp(_round(hit_sec * W / float(WINDOW)), 0, W - 1)
+            xHit = _vis_x(_map_x(hit_sec, elapsed, centered), centered)
             exh = time.now() + time.parse_duration("%ds" % int(hit_sec - elapsed))
             exh_clock = exh.in_location(tz).format("15:04")
 
     # Header: run out before reset -> tokens-out (white) + reset (blue).
     # Otherwise the positive state: "OK" + reset, both green.
-    if show_hit:
+    # At 100% the tokens-out clock freezes, in red, on the moment 100% was hit
+    # (earliest 100% history sample) instead of drifting with the projection,
+    # and the marker pins there too.
+    if pct >= 100:
+        hit_t = _hit100_time(history, start)
+        if hit_t != None:
+            show_hit = True
+            xHit = _vis_x(_map_x((hit_t - start).seconds, elapsed, centered), centered)
+            exh_clock = hit_t.in_location(tz).format("15:04")
+        if exh_clock == None:
+            # No 100% sample pushed yet; now ~= the hit moment until one lands.
+            exh_clock = time.now().in_location(tz).format("15:04")
+        times = [[exh_clock, RED], [reset_clock, BLUE]]
+    elif show_hit:
         times = [[exh_clock, MARK], [reset_clock, BLUE]]
     else:
         times = [["OK", GREEN_POS], [reset_clock, GREEN_POS]]
 
-    ideal_row = render.Row(children = [_ideal_col((x / float(W)) * 100.0) for x in range(W)])
-    marker_row = render.Row(children = [_marker_col(show_hit and x == xHit) for x in range(W)])
+    ideal_row = render.Row(children = [_ideal_col(ivs[x]) for x in range(W)])
+    marker_row = render.Row(children = [_marker_col(show_hit and x == xHit, MARK) for x in range(W)])
+    rows_over = [ideal_row, marker_row]
+    if centered:
+        # Dim dotted line marking "now" at the center, under the ideal line.
+        now_row = render.Row(children = [_marker_col(x == CENTER, NOWLINE) for x in range(W)])
+        rows_over = [now_row, ideal_row, marker_row]
 
     frames = []
     for f in range(FRAMES):
         ph = f * (2 * PI / FRAMES)
         fill_cols = []
         for x in range(W):
-            iv = (x / float(W)) * 100.0
-            av = _actual(cp, x) if x <= nowX else 0.0
-            fill_cols.append(_fill_col(av, iv, x, ph))
-        graph = render.Stack(children = [render.Row(children = fill_cols), ideal_row, marker_row])
-        frames.append(_layout(pct, times, graph, pct_color, name))
+            fill_cols.append(_fill_col(avs[x], ivs[x], x, ph))
+        graph = render.Stack(children = [render.Row(children = fill_cols)] + rows_over)
+        frames.append(_layout(pct, times, graph, pct_color, name, icon_on = f < FRAMES // 2))
 
     return render.Root(delay = DELAY, child = render.Animation(children = frames))
 
@@ -337,8 +498,9 @@ def main(config):
     name = config.get("name") or ""
     # Manual timezone overrides; else the device timezone ($tz); else UTC.
     tz = config.get("timezone") or config.get("$tz") or "UTC"
+    centered = config.bool("show_history", False)
 
-    return _usage(pct, secs, history, reset_at, name, tz)
+    return _usage(pct, secs, history, reset_at, name, tz, centered)
 
 def get_schema():
     return schema.Schema(
@@ -367,6 +529,13 @@ def get_schema():
                 name = "Timezone (optional)",
                 desc = "IANA name, e.g. Europe/Amsterdam. Only needed if your device provides none.",
                 icon = "clock",
+            ),
+            schema.Toggle(
+                id = "show_history",
+                name = "Show history",
+                desc = "Center the graph on now: the past 2.5 hours on the left (grey = previous session), the time ahead on the right.",
+                icon = "clockRotateLeft",
+                default = False,
             ),
         ],
     )

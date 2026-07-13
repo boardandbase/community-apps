@@ -10,6 +10,12 @@ tokens before your 5-hour session resets.
   pace line, fading to **red** where you go above it.
 - A dotted **marker** shows where your tokens run out; the gap to the right edge is
   how much time you fall short.
+- At **100%** the display switches to an error state: a large red **100%** with a
+  blinking **warning triangle**, and the run-out clock **freezes in red** on the
+  moment you hit 100% (the dotted marker pins there too).
+- With **Show history** on, "now" sits at the center (dim dotted line): the left
+  half shows the past 2½ hours — grey where it belongs to a previous session — and
+  the right half what's still ahead of you.
 - An optional **name** bottom-right.
 
 The app only *reads* a small JSON document from a URL. A companion script
@@ -25,6 +31,7 @@ Open the app's settings on the display and fill these in:
 | Access key | `read_key` | no | only for a **private** bin (a read-only key) |
 | Name | `name` | no | `Martijn` |
 | Timezone | `timezone` | no | `Europe/Amsterdam` |
+| Show history | `show_history` | no | off by default; centers the graph on "now" with the past on the left |
 
 Clock times use your device timezone; the Timezone field is only a fallback for
 devices that don't provide one. With no `api_url` set, the app shows **SET URL**.
@@ -51,7 +58,7 @@ it in `{"record": {...}}`, which the app also handles):
 | `active` | `false` → the app shows `IDLE`; `true` → it renders the graph |
 | `percent` | current session usage, 0–100 |
 | `reset_at` | when the 5-hour session window resets (RFC3339, UTC `…Z`) |
-| `history` | samples over time (`t` = RFC3339 UTC, `p` = percent); last 60 kept |
+| `history` | samples over time (`t` = RFC3339 UTC, `p` = percent); last 120 kept |
 
 ## Setting up the data pump on Windows (from scratch)
 

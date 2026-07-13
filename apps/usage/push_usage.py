@@ -77,7 +77,7 @@ SESSION_STATE = os.environ.get("CLAUDE_SESSION_STATE") or _CFG.get("session_stat
 OUTPUT_FILE = os.environ.get("USAGE_OUTPUT_FILE") or _CFG.get("output_file")
 
 # Number of samples kept for the trend line (one point per push).
-HISTORY_MAX = 60
+HISTORY_MAX = 120
 
 
 def _playwright():
