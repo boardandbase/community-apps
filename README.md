@@ -24,11 +24,11 @@ pixlet render apps/agents/agents.star     # render one frame to a WebP/GIF
 pixlet serve  apps/agents/agents.star     # live preview in the browser
 ```
 
-Most apps take config. Pass it on the CLI as `key=value` pairs, or all at once via a
-single `params` string:
+Most apps take a bit of config (like an API key). Open the app's settings and fill in
+the fields, or paste a single line into the **Parameters** field, e.g.:
 
-```sh
-pixlet render apps/agents/agents.star 'params=aio_username=UserA; aio_key=aio_xxx; aio_feed=agent'
+```
+aio_username=UserA; aio_key=aio_xxxxxxxxxxxx; aio_feed=agent
 ```
 
 ## Apps

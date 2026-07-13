@@ -15,19 +15,22 @@ The feed's `value` is a JSON string:
 {"running": 2, "done": 5, "updated": "14:32", "tokens": 3600000}
 ```
 
-## Configuration
+## Setup
 
-| Field | Meaning |
+Open the app's settings and fill in three things:
+
+| Field | What to put there |
 | --- | --- |
 | `aio_username` | Your Adafruit IO username |
 | `aio_key` | Your Adafruit IO key (io.adafruit.com → *My Key*) |
-| `aio_feed` | Feed name the status is pushed to |
-| `params` | All-in-one override: `key=value; key2=value2` |
+| `aio_feed` | The feed name the status is pushed to |
 
-Provide them via the dashboard fields, or all at once on the CLI:
+**Or the quick way:** paste this single line into the **Parameters** field and change
+the values to your own:
 
-```sh
-pixlet render agents.star 'params=aio_username=UserA; aio_key=aio_xxx; aio_feed=agent'
+```
+aio_username=UserA; aio_key=aio_xxxxxxxxxxxx; aio_feed=agent
 ```
 
-No API key is stored in the code — the defaults are empty, so the app is safe to share.
+That's it. Your API key lives in the settings only — never in the code — so the app is
+safe to share.
