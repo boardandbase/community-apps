@@ -66,11 +66,12 @@ The app only *reads* JSON — something has to refresh it periodically. Two rout
 
 ### No laptop (recommended) — GitHub Actions
 
-Run the pump on a free GitHub Actions cron and read the JSON straight from GitHub — no
-PC and no jsonbin. **Fork-and-go reference repo:**
+Run the pump on a free GitHub Actions cron. **Fork-and-go reference repo:**
 [JansenDevelopment/claude-usage-data](https://github.com/JansenDevelopment/claude-usage-data)
-— fork it, add three secrets, and point this app's `api_url` at your fork's raw URL.
-Full monkeyproof steps are in that repo's README.
+— fork it, add a few secrets, and point this app's `api_url` at your fork. It supports
+two routes: the app reading straight from the **GitHub raw URL** (simplest, no jsonbin),
+or from a **jsonbin bin** (freshest, and a laptop hook can feed the same bin). Full
+monkeyproof steps for both are in that repo's README.
 
 ### Local — the bundled `push_usage.py` → jsonbin
 
