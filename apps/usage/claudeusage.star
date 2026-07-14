@@ -52,6 +52,11 @@ def _pct_color(pct):
         return "#ffd60a"
     return "#43e57a"
 
+def _line_color(diff):
+    # % label vs the ideal pace line: on/below -> green, above -> orange.
+    # (100% keeps its own red error state in _layout.)
+    return "#ff9a3c" if diff > 0 else GREEN_POS
+
 def _clamp(v, lo, hi):
     if v < lo:
         return lo
@@ -381,6 +386,10 @@ def _usage(pct, secs, history, reset_at, name, tz, centered):
     elapsed = WINDOW - secs
     if elapsed < 0:
         elapsed = 0
+
+    # Colour the % label by pace: above the ideal line (used faster than elapsed
+    # time) -> orange; on/below -> green. Matches the graph fill's green/red split.
+    pct_color = _line_color(pct - elapsed * 100.0 / WINDOW)
 
     # Per-column values (avs = usage fill, ivs = ideal line; None = no window).
     # Classic: the window spans the full width, x=0 is the session start.
