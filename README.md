@@ -11,6 +11,7 @@ display, and you're done.
 | App | What it shows |
 | --- | --- |
 | [Claude Agents](apps/agents) | How many jobs your Claude assistant is running right now, and how many are finished. |
+| [Claude Usage](apps/usage) | Your current Claude session usage as a percentage, with an animated graph and when your tokens run out vs. when the session resets. |
 
 More apps are on the way.
 

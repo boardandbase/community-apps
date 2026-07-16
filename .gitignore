@@ -1,0 +1,8 @@
+# Pixlet render cache
+.starcache/
+
+# Claude Usage app - local secrets, never commit
+usage_config.json
+
+# Python
+__pycache__/
