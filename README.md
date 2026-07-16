@@ -11,6 +11,7 @@ display, and you're done.
 | App | What it shows |
 | --- | --- |
 | [Claude Agents](apps/agents) | How many jobs your Claude assistant is running right now, and how many are finished. |
+| [Home Assistant Trend](apps/HomeAssistantTrend) | The recent history of one Home Assistant sensor as a full-width, animated trend line. |
 
 More apps are on the way.
 
