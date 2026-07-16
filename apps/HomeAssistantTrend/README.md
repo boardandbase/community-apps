@@ -1,5 +1,7 @@
 # Home Assistant Trend
 
+![Home Assistant Trend showing a solar power sensor](screenshot.png)
+
 Shows the **recent history of one Home Assistant sensor** as a full-width trend
 line on the 64×32 matrix.
 
@@ -30,6 +32,16 @@ Open the app's settings on the display and fill these in:
 | Line color | `line_color` | no | `#0F9FFF` |
 | Animation | `animation` | no | `ripple` (default), `pulse`, `wave`, `sweep`, `scan`, `comet` or `none` |
 | Animation speed | `speed` | no | `normal` (default), `slow` or `fast` |
+
+**Or the quick way:** paste this single line into the **Parameters** field and change
+the values to your own (the screenshot above uses these):
+
+```
+ha_url=https://your-home-assistant; token=YOUR_LONG_LIVED_TOKEN; entity_id=sensor.solaredge_huidig_vermogen; display_name=Solar; unit=W; hours=12; line_color=E7D00E
+```
+
+Your URL and token live in the settings only — never in the `.star` code — so the app
+is safe to share.
 
 ## Animations
 
