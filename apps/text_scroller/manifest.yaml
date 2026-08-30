@@ -1,0 +1,8 @@
+id: text_scroller
+name: Text Scroller
+summary: Your own text on the display
+desc: >-
+  Shows any text you like. Short text sits still and centred; longer text scrolls
+  smoothly and repeats.
+author: Board & Base
+fileName: text_scroller.star

@@ -1,0 +1,8 @@
+id: isittime
+name: Is It Time?
+summary: Is it time for X yet?
+desc: >-
+  Asks whether it's time for something yet. Before the hour you picked it counts down;
+  after it, it says YES.
+author: Board & Base
+fileName: isittime.star

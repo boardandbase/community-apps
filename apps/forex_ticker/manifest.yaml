@@ -1,0 +1,8 @@
+id: forex_ticker
+name: Forex Ticker
+summary: Currency pair with a chart
+desc: >-
+  Live exchange rate for a currency pair with a sparkline chart. Shows the pair as
+  EUR/USD and leaves out the currency symbol.
+author: Board & Base
+fileName: forex_ticker.star

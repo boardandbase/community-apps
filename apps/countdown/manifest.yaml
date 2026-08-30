@@ -1,0 +1,8 @@
+id: countdown
+name: Countdown
+summary: Days and hours until a date
+desc: >-
+  Counts down to a date and time you pick, in days, hours and minutes. After the
+  moment passes it shows how long ago it was.
+author: Board & Base
+fileName: countdown.star

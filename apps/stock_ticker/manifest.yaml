@@ -1,0 +1,8 @@
+id: stock_ticker
+name: Stock Ticker
+summary: Share price with a chart
+desc: >-
+  Live share price with the change since the market opened and a sparkline chart. Uses
+  your own Twelve Data key.
+author: Board & Base
+fileName: stock_ticker.star
