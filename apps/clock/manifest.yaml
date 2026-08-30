@@ -1,0 +1,8 @@
+id: clock
+name: Clock
+summary: Time, weekday and date
+desc: >-
+  A clean clock with the time on top, a thin divider, and the weekday and date below.
+  12- or 24-hour, six colours, any timezone.
+author: Board & Base
+fileName: clock.star

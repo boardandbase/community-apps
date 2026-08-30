@@ -1,0 +1,7 @@
+id: metal_ticker
+name: Metal Ticker
+summary: Gold and silver prices
+desc: >-
+  Live precious metal price with a sparkline chart. Uses your own Twelve Data key.
+author: Board & Base
+fileName: metal_ticker.star

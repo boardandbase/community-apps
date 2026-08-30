@@ -1,0 +1,9 @@
+id: weather
+name: Weather
+summary: Weather with an animated sky
+desc: >-
+  Current temperature, humidity, today's low and high, and a 24-hour temperature
+  graph. The left-hand corner animates with the weather: sun, moon, clouds, fog, rain,
+  snow or a thunderstorm.
+author: Board & Base
+fileName: weather.star

@@ -10,9 +10,26 @@ display, and you're done.
 
 | App | What it shows |
 | --- | --- |
+| [Clock](apps/clock) | Time, weekday and date. |
+| [Weather](apps/weather) | Temperature and humidity, with a sky that animates along — sun, rain, snow or a thunderstorm — and a 24-hour graph. |
+| [Crypto Ticker](apps/crypto_ticker) | A crypto price with its 24-hour change and a chart. |
+| [Stock Ticker](apps/stock_ticker) | A share price with the change since the market opened. |
+| [ETF Ticker](apps/etf_ticker) | An ETF price with a chart. |
+| [Metal Ticker](apps/metal_ticker) | The gold or silver price. |
+| [Forex Ticker](apps/forex_ticker) | An exchange rate, shown as EUR/USD. |
+| [Dutch Energy Price](apps/energy_stroom) | Today's electricity price per hour, with a red dot on the hour you're in. |
+| [Countdown](apps/countdown) | Days and hours until a date you pick. |
+| [Is It Time?](apps/isittime) | Whether it's time for a beer, lunch or the gym yet. |
+| [Text Scroller](apps/text_scroller) | Any text you like, scrolling if it doesn't fit. |
+| [Matrix Rain](apps/matrix_rain) | Green rain falling down the screen. |
+| [Pixel Art](apps/pixel_art) | Your own picture or animation, with an optional clock on top. |
 | [Claude Agents](apps/agents) | How many jobs your Claude assistant is running right now, and how many are finished. |
 
-More apps are on the way.
+Most of these work straight away. The five tickers need a free key from
+[twelvedata.com](https://twelvedata.com) and the energy app a free token from
+[enever.nl](https://enever.nl/prijzenfeeds/) — you fill those in on the app's own
+page, so the key stays yours and nobody else's usage can eat into it. Each app's
+page explains exactly where to put it.
 
 ## Adding an app to your display
 

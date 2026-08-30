@@ -1,0 +1,8 @@
+id: crypto_ticker
+name: Crypto Ticker
+summary: Crypto price with a chart
+desc: >-
+  Live crypto price with a 24-hour change and a sparkline chart that draws itself in
+  from left to right. Uses your own Twelve Data key.
+author: Board & Base
+fileName: crypto_ticker.star

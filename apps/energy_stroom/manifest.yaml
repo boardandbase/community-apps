@@ -1,0 +1,9 @@
+id: energy_stroom
+name: Dutch Energy Price
+summary: Hourly Dutch electricity price
+desc: >-
+  Today's electricity price per hour from Enever.nl, with a graph of the whole day and
+  a red dot on the current hour. Optionally for a specific supplier, including VAT and
+  surcharges.
+author: Board & Base
+fileName: energy_stroom.star

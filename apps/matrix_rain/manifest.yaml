@@ -1,0 +1,8 @@
+id: matrix_rain
+name: Matrix Rain
+summary: Green falling rain
+desc: >-
+  Green streaks falling down the screen, each with a bright head and a fading tail.
+  Three densities.
+author: Board & Base
+fileName: matrix_rain.star
