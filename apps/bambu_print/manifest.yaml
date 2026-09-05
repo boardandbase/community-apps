@@ -2,8 +2,9 @@ id: bambu_print
 name: Bambu Print Progress
 summary: Live progress of your Bambu Lab print
 desc: >-
-  Shows what your Bambu Lab printer is doing right now via Bambu Cloud: the job name,
-  a big percentage, the time left and a progress bar. A pulsing dot shows the state
-  (printing, paused, done, failed, idle, offline). Renders demo data without a token.
+  Shows what your Bambu Lab printer is doing right now via Bambu Cloud: a tiny printer
+  builds your model layer by layer while the nozzle moves, next to a big percentage,
+  the time left and a glowing progress bar. Colour follows the state (printing, paused,
+  done, failed, idle, offline). Renders demo data without a token.
 author: Board & Base
 fileName: bambu_print.star

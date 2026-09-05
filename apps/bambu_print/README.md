@@ -1,10 +1,10 @@
 # Bambu Print Progress
 
-Shows what your Bambu Lab printer is doing right now, read from Bambu Cloud: the job name, a big percentage, the time left and a progress bar along the bottom. A pulsing dot in the corner shows the state — green while printing, orange when paused, blue when done, red when failed or offline.
+Shows what your Bambu Lab printer is doing right now, read from Bambu Cloud. A tiny printer on the left builds your model layer by layer — the nozzle sweeps across and lays down fresh filament — next to a big percentage and the time left. Along the bottom runs a progress bar with a colour gradient and a light sweep while printing. A pulsing dot in the corner shows the state — green while printing, orange when paused, blue when done, red when failed or offline — and the whole screen follows that colour.
 
 Progress is worked out from the elapsed time against the printer's own estimate, so it needs no local network access to the printer. Made for the P1S, but it works with any printer that shows up in your Bambu Cloud account.
 
-Without a token the app shows demo data, so you can see what it looks like before you set it up.
+Without a token the app shows demo data, so you can see what it looks like before you set it up. Add `demo=done`, `demo=pause`, `demo=fail` or `demo=idle` to preview the other looks.
 
 ## Setup
 
