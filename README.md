@@ -23,6 +23,7 @@ display, and you're done.
 | [Text Scroller](apps/text_scroller) | Any text you like, scrolling if it doesn't fit. |
 | [Matrix Rain](apps/matrix_rain) | Green rain falling down the screen. |
 | [Pixel Art](apps/pixel_art) | Your own picture or animation, with an optional clock on top. |
+| [Bambu Print Progress](apps/bambu_print) | What your Bambu Lab printer is printing, how far along it is and how long is left. |
 | [Claude Agents](apps/agents) | How many jobs your Claude assistant is running right now, and how many are finished. |
 
 Most of these work straight away. The five tickers need a free key from
