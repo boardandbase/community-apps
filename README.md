@@ -25,6 +25,7 @@ display, and you're done.
 | [Pixel Art](apps/pixel_art) | Your own picture or animation, with an optional clock on top. |
 | [Bambu Print Progress](apps/bambu_print) | What your Bambu Lab printer is printing, how far along it is and how long is left. |
 | [Claude Agents](apps/agents) | How many jobs your Claude assistant is running right now, and how many are finished. |
+| [Home Assistant Trend](apps/HomeAssistantTrend) | The recent history of one Home Assistant sensor as a full-width, animated trend line. |
 
 Most of these work straight away. The five tickers need a free key from
 [twelvedata.com](https://twelvedata.com) and the energy app a free token from

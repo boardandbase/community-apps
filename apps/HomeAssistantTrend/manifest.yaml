@@ -1,0 +1,10 @@
+id: homeassistanttrend
+name: Home Assistant Trend
+summary: Sensor history as an animated trend line
+desc: >-
+  Shows the recent history of one Home Assistant sensor as a full-width trend
+  line on the 64x32 matrix: the sensor name and current value on top, a dimmed
+  fill under the line, and an optional animation. Point it at your Home Assistant
+  instance with a long-lived access token.
+author: Martijn Jansen
+fileName: HomeAssistantTrend.star
