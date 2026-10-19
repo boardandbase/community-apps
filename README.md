@@ -19,6 +19,7 @@ display, and you're done.
 | [Forex Ticker](apps/forex_ticker) | An exchange rate, shown as EUR/USD. |
 | [Dutch Energy Price](apps/energy_stroom) | Today's electricity price per hour, with a red dot on the hour you're in. |
 | [Countdown](apps/countdown) | Days and hours until a date you pick. |
+| [Bin Day](apps/bin_day) | Which bin goes out next — rest, GFT or paper — and when. |
 | [Is It Time?](apps/isittime) | Whether it's time for a beer, lunch or the gym yet. |
 | [Text Scroller](apps/text_scroller) | Any text you like, scrolling if it doesn't fit. |
 | [Matrix Rain](apps/matrix_rain) | Green rain falling down the screen. |
