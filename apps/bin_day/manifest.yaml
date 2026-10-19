@@ -1,0 +1,9 @@
+id: bin_day
+name: Bin Day
+summary: Which bin goes out next, and when
+desc: >-
+  Shows the next bin collection from your own waste calendar: a small green bin with
+  TOMORROW, TODAY, the weekday or the date on top, and the bin itself (REST, GFT or
+  PAPER) in big letters below. Comes with example dates, so it works straight away.
+author: Board & Base
+fileName: bin_day.star
